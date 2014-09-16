@@ -1,0 +1,17 @@
+{
+    "success": true,
+    "data": [
+        {"Name": "15 Minutes","Seconds":"900"}, 
+        {"Name": "30 Minutes","Seconds":"1800"}, 
+        {"Name": "45 Minutes","Seconds":"2700"}, 
+        {"Name": "1 Hour","Seconds":"3600"}, 
+        {"Name": "2 Hours","Seconds":"7200"}, 
+        {"Name": "4 Hours","Seconds":"14400"}, 
+        {"Name": "8 Hours","Seconds":"28800"}, 
+        {"Name": "1 Day","Seconds":"86400"}, 
+        {"Name": "2 Days","Seconds":"172800"}, 
+        {"Name": "4 Days","Seconds":"345600"}, 
+        {"Name": "7 Days","Seconds":"604800"}, 
+        {"Name": "30 Days","Seconds":"2592000"}, 
+    ]    
+}

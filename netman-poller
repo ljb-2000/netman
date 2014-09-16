@@ -1,0 +1,117 @@
+#!/usr/bin/env python
+import sys,os,re,getopt
+import netman
+
+SCRIPTNAME = 'Netman Poller'
+VERSION = '.1'
+
+def help():
+	help = '''
+# %s version %s Help 
+Usage:
+	%s [-c|-f|-h|-s] [--cli|--fetch|--help|--save] device
+
+Example:
+	%s -f interfaces -s switch1
+
+Options:
+	-c (--cli)
+			Starts an interactive sesssion for running multiple commands
+	-f (--fetch) interfaces|vlans|hardware|neighbors|system|nodes|arp
+			Fetches information from switch.
+	-h (--help)
+			Displays this help screen and exits	
+	-s (--save)
+			Saves/ updates to data store all information returned. By default the fetches information will only be displayed locally, and not updated in the data store.
+''' % (SCRIPTNAME,VERSION,sys.argv[0],sys.argv[0])
+	print help
+	sys.exit()
+
+letters  = 'f:hcs'
+keywords = ['fetch=','save','help','cli']
+opts, extraparams = getopt.getopt(sys.argv[1:],letters,keywords)
+DEVICE = False
+CLI = False
+for o,p in opts:
+	if o in ['-c','--cli']:
+		if len(opts) > 1:
+			print "CLI cannot be invoked with other options"
+			help()
+		CLI = True
+	if o in ['-f','--fetch']:
+		FETCH = p.strip()
+	if o in ['-h','--help']:
+		help()
+	if o in ['-s','--save']:
+		SAVE = True
+if not CLI:
+	if len(extraparams) != 1:
+		print "Invalid syntax"
+		help()
+	DEVICE = extraparams[0].strip()
+	if not DEVICE:
+		print "Please specify a device"
+		help()
+else:
+	prompt = "cli#"
+	do = ''
+	try:
+		while(do != 'exit'):
+			do = raw_input(prompt)
+	except KeyboardInterrupt:
+		print "to exit, type exit"
+class device:
+	def __init__(self,device):
+		'''class initialization'''
+		self.config = netman.Config()
+		self.db = web.database(dbn=config.dbn,host=config.dbhost,user=config.dbuser,pw=config.dbpasswd,db=config.database)
+
+	def load(self):
+		'''load information from data store'''
+	def save(self):
+		'''save information to data store'''
+	def ping(self):
+		'''performs network connectivity assessment'''
+	def snmpwalk(self):
+		'''performs snmpwalk'''
+	def snmpget(self):
+		'''performs snmpget'''
+	def snmpset(self):
+		'''performs snmpset'''
+	def cleanmac(self,mac):
+		'''returns a clean mac address from any input format'''
+		mac = mac.upper().strip()
+		if re.search("([0-9|A-F]i+\:)+[0-9|A-F]i+",mac):
+			macAddress =  mac
+		elif re.search("([0-9|A-F]i+\-)+[0-9|A-F]i+",mac):
+			macAddress = re.sub("\-",":",mac)
+		elif re.search("([0-9|A-F]i+\.)[0-9|A-F]i+",mac):
+			s = mac.replace(".","")
+			macAddress = ':'.join([s[x:x+2] for x in xrange(0, len(s), 2)])
+		elif re.search("0x",mac):
+			s = mac.replace("0x","")
+			macAddress = ':'.join([s[x:x+2] for x in xrange(0, len(s), 2)])
+		else:
+			macAddress = mac
+		return macAddress
+	def ipcheck(self,ip):
+		'''checks string for valid ip address'''
+	def ssh(self,action):
+		'''performs remote ssh functions'''
+	def nslookup(self,host):
+		'''performs dns query'''
+	def log(self,message):
+		'''logs message'''
+	def history(self):
+		'''logs history message in data store'''
+	def fetch(self,action):
+		'''performs automated discovery and polling features'''
+		actions = ['interfaces','vlans','hardware','neighbors','system','nodes','arp']
+		if action not in actions:
+			self
+#######################################
+# example usage
+#######################################
+#Device = device("172.16.2.210")
+#Device.fetch("interfaces")
+#Device.save()

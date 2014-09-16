@@ -1,0 +1,19 @@
+.x-mask.splashscreen {
+    background-color: white;
+    opacity: 1;
+}
+
+.x-mask-msg.splashscreen,
+.x-mask-msg.splashscreen div {
+    font-size: 16px;
+    padding: 30px 5px 5px 5px;
+    border: none;
+    background-color: transparent;
+    background-position: top center;
+}
+.x-splash-icon {
+    /* Important required due to the loading symbols CSS selector */
+    background-image: url('images/logo-splash.png') !important;
+    margin-top: -30px;
+    margin-bottom: 10px;
+}

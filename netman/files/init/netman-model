@@ -1,0 +1,153 @@
+#!/bin/sh
+# Init Script for NetMan Model
+# /etc/init.d/netman-model
+### BEGIN INIT INFO
+# Provides:		netman-model
+# Required-Start:	$network
+# Required-Stop:
+# Default-Start:	3 5
+# Default-Stop:		0 1 2 6
+# Short-Description:	netman-model daemon, network monitoring service
+# Description:		The netman-monitor daemon is a monitoring service that 
+# 		actively probes managed devices for availability using ICMP,
+#		SNMP, and SSH.
+### END INIT INFO
+
+
+CONFDIR="/etc"
+BINDIR="/itc/html/netman-js/core"
+PROG="netman-model"
+PROG_OPTS=""
+PID_FILE="/var/run/${PROG}.pid"
+LOGFILE="/var/log/${PROG}.log"
+KEYVAL=""
+PID_FROM_FILE=""
+PIDS=""
+
+# redhat sysconfig options
+[ -e /etc/sysconfig/$PROG ] && . /etc/sysconfig/$PROG
+
+# export option1
+# export option2
+
+get() {
+    key=$1
+    CONF_FILE="${CONFDIR}/netman.cfg"
+    KEYVAL=`grep "^[  ]*${key}[   ]*=" ${CONF_FILE} | awk -F '=' '{print $2}' | sed -e 's/[\r\n]//g'`
+    return $?
+}
+check_pid(){
+	PIDS=""
+	for pid in `pgrep -xf "python $BINDIR/$PROG start"`; do
+		if [ $pid -ne $$ ] ; then # incase $PROG == $0
+			PIDS="$pid"
+		fi
+	done
+}
+
+check_prog() {
+	check_pid
+	if [ -e "$PID_FILE" ] ; then
+		PID_FROM_FILE=$(cat "$PID_FILE")
+		if [ " " != "$PID_FROM_FILE" ] ; then
+			#echo "PID EXISTS"
+			if [ -n "$PIDS" ]; then
+				#echo "Process is running"
+				if [ $PIDS = $PID_FROM_FILE ] ; then
+					#echo "Match"
+					return 0
+				else
+					#echo "No Match"
+					return 4
+				fi
+			else
+				#echo "Process is not running"
+				return 1
+			fi
+				
+		else
+			#echo "no active pid"
+        		return 3
+    		fi
+	else 
+		if [ -n "$PIDS" ] ; then
+			#echo $PIDS > $PID_FILE
+			return 0
+	
+		else
+			return 3
+		fi
+	fi
+}
+
+start() {
+
+    check_prog
+    if [ $? -eq 0 ] ; then
+        echo "${PROG} is already running."
+        exit 1
+    fi
+
+
+    ${BINDIR}/${PROG} ${PROG_OPTS} start
+    if [ $? -ne 0 ] ; then
+        echo "Error starting ${PROG}."
+	exit 1
+    fi
+	echo "${PROG} started."
+	check_prog
+	echo $PIDS > $PID_FILE
+	exit 0
+}
+
+stop() {
+	check_pid
+	if [ -n "$PIDS" ]; then
+		kill $PIDS
+		sleep 5s
+		check_pid
+		if [ -n "$PIDS" ]; then
+			kill -9 $PIDS
+		fi
+		rm $PID_FILE
+		echo "${PROG} stopped.";
+	else
+		echo "${PROG} is not running"
+		exit 1
+	fi
+}
+
+status() {
+    check_prog
+	RET=$?
+   case "$RET" in
+	"0") echo "${PROG} is running";;
+	"1") echo "${PROG} is dead and $PID_FILE exists";;
+	"2") echo "${PROG} is dead and /var/lock lock file exists";;
+	"3") echo "${PROG} is not running";;
+	"4") echo "${PROG} status is unknown";;
+	esac
+	exit "$RET"
+}
+
+restart() {
+	echo "Restarting ${PROG}..."
+	stop
+	start
+}
+
+usage() {
+    echo "Usage: $0 {start|stop|restart|force-reload|status}"
+    exit 2
+}
+
+case "$1" in
+start) start ;;
+stop) stop;;
+restart) restart ;;
+force-reload) restart ;;
+status) status ;;
+*) echo "invalid argument"; usage ;;
+esac
+
+exit 0

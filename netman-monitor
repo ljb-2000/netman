@@ -1,0 +1,199 @@
+#!/usr/bin/env python
+import web
+import time
+import sys,os,time,atexit,getopt
+from netman import config
+from netman.tools import ping
+from netman import event
+import gping
+
+SERVICE_NAME = "netman-monitor"
+
+			
+# GLOBAL variables 
+DOWNED = []
+KNOWN_DOWN = []
+ALLQ = []
+
+def usage():
+	print "Netman Monitor Help Menu"
+	print "-c(--config=) config_file		set config file location"
+	print "-d(--debug=) debug_level			set debug level, int=0 - 3, default is 0 (off)"
+	print "-h(--help)				print this help menu then exit"
+	print "-i(--interactive)			dont't run as daemon; instead run in interactove mode"
+	sys.exit()
+def log(msg,level):
+	'''logs messages'''
+	if int(level) <= int(debuglevel):
+		sys.stdout.write("[%s] %s[%s]: %s\n" % (time.ctime(),SERVICE_NAME,os.getpid(),msg))
+
+args = 'c:d:hi'
+opts = ['config=','debug=','help','interactive']
+
+try:
+	opts, args = getopt.getopt(sys.argv[1:], args, opts)
+except:
+	usage()
+# default setup
+configfile = '/etc/netman.conf'
+debuglevel = 0
+interactive = False
+
+
+for o, a in opts:
+	if o in ("-c","--config"):
+		configfile = a
+	elif o in ("-d","--debug"):
+		debug = a
+		try:
+			int(a)
+			debuglevel = a
+		except:
+			print "debug level must be between 0 and 3"
+			usage()
+	elif o in ("-h","--help"):
+		usage()
+	elif o in ("-i","--interactive"):
+		interactive = True
+#load configuration
+Config = config.Config(cfg=configfile)
+web.config._hasPooling = False
+web.config.debug = False
+logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
+errlogfile = "%s/%s-error.log" % (Config.logdir,SERVICE_NAME)
+db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
+if not os.geteuid()==0:
+	print "%s must be ran as root\n" % SERVICE_NAME
+	sys.exit(0)
+
+if not interactive:
+	pid = os.fork()
+	if pid > 0:
+		# exit first parent
+		sys.exit(0)
+	os.chdir("/")
+	os.setsid()
+	os.umask(0)
+	pid = os.fork()
+	if pid > 0:
+		# exit second parent
+		sys.exit(0)
+	sys.stdout.flush()
+	sys.stderr.flush()
+	si = file('/dev/null', 'r')
+	so = file(logfile, 'a+')
+	os.dup2(si.fileno(), sys.stdin.fileno())
+	os.dup2(so.fileno(), sys.stdout.fileno())
+	# atexit.register(self.delpid)
+	pid = str(os.getpid())
+else:
+	log("running in interactive mode",0)
+se = file(errlogfile, 'a+')
+os.dup2(se.fileno(), sys.stderr.fileno())
+log("%s started" % SERVICE_NAME,0)
+log("debug level set to %s" % debuglevel,0)
+sys.stdout.flush()
+
+def post_response(resp):
+	global db
+	global DOWNED
+	# defaults
+	status = 1
+	counter = "LastSeen"
+	if not resp['success']:
+		#print "Failed to %s" % resp['dest_addr']
+		if not ping(resp['dest_addr']):
+			status = 0
+			counter = "LastDown"
+			DOWNED.append(resp['dest_addr'])
+	# build sql based on what we know
+	#sql = "UPDATE Devices SET Alive='{Status}',{Counter}='{Time}' WHERE Address=INET_ATON('{Address}')".format(
+	#	Time=int(time.time()),
+	#	Address=resp['dest_addr'],
+	#	Status=status,
+	#	Counter=counter,
+	#)
+	#ALLQ.append(sql)
+# open database connection in global namespace
+def run():
+	global DOWNED
+	'''main worker'''
+	while(1):
+		# execute main code here
+
+		DOWNED = []
+		KNOWN_DOWN = []
+		ALLQ = []
+		q = gping.GPing()
+
+		# make sure a database connection is established
+		db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
+		while not db:
+			db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
+			log("cant't connect to database",0)
+			time.sleep(2)
+			break
+		# make sure ip check can be pinged 
+		while not ping(Config.ipcheck):
+			log("Unable to reach ip check device at %s, waiting 5 seconds" % Config.ipcheck,0)
+			time.sleep(5)
+		try:
+			d = "SELECT id,Name,State,INET_NTOA(Address) AS Address,Alive FROM Devices WHERE (State !='De-comissioned') AND (Address !='') AND Monitor='1'"
+			try:
+				devices = db.query(d)
+			except:
+				log("unable to retrieve devices from databazse",0)
+				time.sleep(5)
+				continue
+			log("Checking %s devices..." % len(devices),1)
+			for device in devices:
+				if device.Alive == 0:
+					KNOWN_DOWN.append(device.Address)
+				elif device.Alive == 3:
+					# if marked by web for deletion, do it here. 
+					log("Deleting device %s as marked by web." % device.Name,0)
+					try:
+						db.delete("Devices",where="id='%s'" % device.id)
+					except:
+						log("unable to delete %s from database" % device.id,0)
+					break	
+					
+				q.send(device.Address,post_response)
+			q.join()
+			# run database queries
+			#if not interactive:
+			#	for sql in ALLQ:
+			#		db.query(sql)
+
+			# compare previously known down to currently down
+			for i in DOWNED:
+				if i not in KNOWN_DOWN:
+					log("%s offline" % i,0)
+				# always send event, so it stays updated
+				if not interactive:
+					q = "UPDATE Devices SET Alive='0' WHERE Address=INET_ATON('%s')" % i
+					db.query(q)
+					event.Event("device unreachable via ICMP at %s" % i,Address=i,Source="NETMAN-MONITOR",Tag="NETMAN-MONITOR",Severity=1)
+			for i in KNOWN_DOWN:
+				if i not in DOWNED:
+					log("%s back online" % i,0)
+					q = "UPDATE Devices SET Alive='1' WHERE Address=INET_ATON('%s')" % i
+					db.query(q)
+					if not interactive:
+						event.Event("device is now reachable via ICMP at %s" % i,Address=i,Source="NETMAN-MONITOR",Tag="NETMAN-MONITOR",Severity=1,TagClear="NETMAN-MONITOR")
+			# UPDATE All time integers
+			q = "UPDATE Devices SET LastSeen='%s' WHERE Alive='1'" % int(time.time())
+			db.query(q)
+			q = "UPDATE Devices SET LastDown='%s' WHERE Alive='0'" % int(time.time())
+			db.query(q)
+
+			sys.stdout.flush()
+			if interactive:
+				sys.exit()
+		except KeyboardInterrupt:
+			sys.exit()
+		except:
+			sys.exit()
+			log("general error",0)
+if 'main' in __name__:
+	run()

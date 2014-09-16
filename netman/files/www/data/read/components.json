@@ -1,0 +1,12 @@
+{
+	"success": true,
+	"2": [
+		{"Name": "Cisco", "leaf": false, "loaded" : true,"expanded":true,
+		"/":[
+			{"Name": "Interfaces", "leaf": true, "loaded" : true,"xtype":"deviceinterfaces"},
+			{"Name": "Hardware", "leaf": true, "loaded" : true,"xtype":"devicehardware"},
+			{"Name":"Neighbors","leaf":true,"loaded":true,"xtype":"deviceneighbors"},
+			{"Name":"Vlans","leaf":true,"loaded":true,"xtype":"devicevlans"}
+		]
+	]
+}, 

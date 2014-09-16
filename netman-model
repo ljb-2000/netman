@@ -1,0 +1,176 @@
+#!/usr/bin/env python
+import web
+import time
+import sys,os,time,atexit,getopt
+from netman.tools import ping
+from netman import model
+from netman import config
+import gevent
+
+SERVICE_NAME = "netman-model"
+#interactive = True
+
+PROCESS_LIMIT = 2
+Q_LIMIT = 0
+DEVICE = ''
+
+def usage():
+	print "%s Help Menu" % SERVICE_NAME
+	print "Usage:"
+	print "		%s [-c|-d|-D|-h|-i|-p|-Q] [--config=|--debug=|--device=|--help|--interactive=|--process_limit=|--query_limit=]" % (sys.argv[0])
+	print "Example:"
+	print "		%s -i --device=1.1.1.1" % (sys.argv[0])
+	print " "
+	print "-c(--config=) config_file		set config file location"
+	print "-d(--debug=) debug_level			set debug level, int=0 - 3, default is 0 (off)"
+	print "-D(--device=) device			run for a particular device, accepts host name or ip adrress"
+	print "-h(--help)				print this help menu then exit"
+	print "-i(--interactive)			dont't run as daemon; instead run in interactove mode"
+	print "-p(--process_limit=)			maximum number of threads"
+	print "-Q(--query_limit=)			maximum number of devices to run against"
+	sys.exit()
+
+args = 'c:d:D:hip:Q:'
+opts = ['config=','debug=','device=','help','interactive','processlimit=','qlimit=']
+
+def log(msg,level):
+	'''logs messages'''
+	if int(level) <= int(debuglevel):
+		sys.stdout.write("[%s] %s[%s]: %s\n" % (time.ctime(),SERVICE_NAME,os.getpid(),msg))
+try:
+	opts, args = getopt.getopt(sys.argv[1:], args, opts)
+except:
+	usage()
+# default setup
+configfile = '/etc/netman.conf'
+debuglevel = 1
+interactive = False
+
+for o, a in opts:
+	if o in ("-c","--config"):
+		configfile = a
+	elif o in ("-d","--debug"):
+		try:
+			debuglevel = int(a)
+		except:
+			print "debug level must be between 0 and 3"
+			usage()
+	elif o in ("-D","--device"):
+		DEVICE = a
+		interactive = True
+	elif o in ("-h","--help"):
+		usage()
+	elif o in ("-i","--interactive"):
+		interactive = True
+	elif o in ("-p","--process_limit"):
+		try:
+			PROCESS_LIMIT = int(a)
+		except:
+			print "Invalid process_limit parameter"
+			usage()	
+	elif o in ("-Q","--query_limit"):
+		try:
+			Q_LIMIT = int(a)
+		except:
+			print "Invalid query_limnit parameter"
+			usage()
+#load configuration
+if interactive and debuglevel < 1:
+	debuglevel = 1
+	log("Setting debug level to 1 for interactive",1)
+Config = config.Config(cfg=configfile)
+web.config._hasPooling = False
+web.config.debug = False
+logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
+errlogfile = "%s/%s-error.log" % (Config.logdir,SERVICE_NAME)
+model.debuglevel = debuglevel
+
+def callitback(c):
+	log(c,0)
+
+def run():
+	'''main worker'''
+	if not os.geteuid()==0:
+		print "%s must be ran as root\n" % SERVICE_NAME
+		sys.exit(0)
+
+	if not interactive:
+		pid = os.fork()
+		if pid > 0:
+			# exit first parent
+			sys.exit(0)
+		os.chdir("/")
+		os.setsid()
+		os.umask(0)
+		pid = os.fork()
+		if pid > 0:
+			# exit second parent
+			sys.exit(0)
+		sys.stdout.flush()
+		sys.stderr.flush()
+		si = file('/dev/null', 'r')
+		so = file(logfile, 'a+')
+		os.dup2(si.fileno(), sys.stdin.fileno())
+		os.dup2(so.fileno(), sys.stdout.fileno())
+		# atexit.register(self.delpid)
+		pid = str(os.getpid())
+	else:
+		log("running in interactive mode",0)
+	if int(debuglevel) < 2 and not interactive:
+		se = file(errlogfile, 'a+')
+		os.dup2(se.fileno(), sys.stderr.fileno())
+	log("%s started" % SERVICE_NAME,0)
+	log("debug level set to %s" % debuglevel,0)
+	sys.stdout.flush()
+	db = False
+
+
+
+	while(1):
+		# execute main code here
+		while not db:
+			try:
+				db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
+			except:
+				log("cant't connect to database",0)
+				time.sleep(2)
+		total_nodes = []
+		def total_nodes(c):
+			'''do nothing for reals'''
+			sys.exit()
+			# Multi processing mac polling
+			# netman.Event("message",Address=device.Address,Source="NETMAN-MODELLER",Tag="NETMAN-MODELLER",Severity="5")
+		d = "SELECT id,Name,State,INET_NTOA(Address) AS Address,Alive FROM Devices WHERE (State !='De-comissioned') AND (Address !='') AND Alive='1' "
+		if DEVICE != '':
+			d = d + " AND (Name = '%s' OR Address=INET_ATON('%s')) " % (DEVICE,DEVICE)
+		d = d + " ORDER BY LastModeled ASC"
+		if Q_LIMIT:
+			d = d + " LIMIT 0,%s " % Q_LIMIT
+		log(d,2)
+		devices = db.query(d)
+		log("%s devices found" % len(devices),1)
+		units = []
+		if len(devices) > 1 and PROCESS_LIMIT > 1:
+			try:
+				for d in devices:
+					while not tools.ping(Config.ipcheck):
+						log("Unable to reach ip check device at %s, waiting 5 seconds" % Config.ipcheck,0)
+						time.sleep(3)
+					units.append(d.Address)
+				gevent.joinall([gevent.spawn(model.device, i) for i in units])
+			except KeyboardInterrupt:
+				print "Quitting by request"
+				sys.exit(0)
+			#except:
+			#	print "Uncaught exception"
+			#	sys.exit(0)
+		else:
+			for d in devices:
+				d = model.device(Device=d.Address)
+				if not d.saved:
+					d.save()
+		sys.stdout.flush()
+		if interactive:
+			sys.exit()
+if 'main' in __name__:
+	run()

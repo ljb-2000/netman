@@ -1,0 +1,19 @@
+{
+    "success": true,
+    "/": [
+        {"Name": "System Information", "leaf": true, "loaded" : true,"xtype":"deviceinfo"}, 
+        {"Name": "Addresses", "leaf": true, "loaded" : true,"xtype":"deviceaddresses"}, 
+        {"Name": "Configuration", "leaf": true, "loaded" : true,"xtype":"deviceconfig"}, 
+        {"Name": "Graphs", "leaf": true, "loaded" : true,"xtype":"devicegraphs"}, 
+	{"Name":"Events","leaf":true,"loaded":true,"xtype":"deviceevents"},
+	{"Name":"History","leaf":true,"loaded":true,"xtype":"devicehistory"},
+        {"Name": "Cisco", "leaf": false, "loaded" : true,"expanded":true,
+		"/":[
+        	{"Name": "Interfaces", "leaf": true, "loaded" : true,"xtype":"deviceinterfaces"},
+        	{"Name": "Hardware", "leaf": true, "loaded" : true,"xtype":"devicehardware"},
+		{"Name":"Neighbors","leaf":true,"loaded":true,"xtype":"deviceneighbors"},
+		{"Name":"Vlans","leaf":true,"loaded":true,"xtype":"devicevlans"}
+		]
+	}, 
+    ]    
+}

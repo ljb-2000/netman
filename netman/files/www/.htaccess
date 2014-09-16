@@ -1,0 +1,7 @@
+# netman .htaccess file for root of web directory
+RewriteEngine On
+RewriteBase /netman/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !(\.css|\.js|\.png|\.jpg|\.gif|robots\.txt\.php)$ [NC]
+RewriteRule ^(.*)$ index.php?Application=$1 [QSA]

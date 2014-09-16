@@ -1,0 +1,44 @@
+{
+    "success": true,
+    "children": [
+        { "Name": "Devices", "leaf": false, "loaded" : true,
+          "children": [
+             {  "Name": "Offline Devices", "leaf": true, "loaded" : true,"xtype":"offlinedevices"},
+             { "Name": "Active Maintenance", "leaf": true, "loaded" : true,"xtype":"maintenance"},
+		{"Name":"Device Alarms","leaf":true,"loaded":true,"xtype":"devicealarms"},
+		{"Name":"Interfaces","leaf":true,"loaded":true,"xtype":"interfaces"},
+		{"Name":"Graph","leaf":true,"loaded":true,"xtype":"graph"},
+          ]    
+        },
+        {  "Name": "Vlans", "leaf": false, "loaded" : true,
+          "children": [
+             { "Name": "Vlan Search", "leaf": true, "loaded" : true,"xtype":"vlanlist"}, 
+          ]    
+        } ,
+        { "Name": "Nodes", "leaf": false, "loaded" : true,
+          "children": [
+             { "Name": "Nodes", "leaf": true, "loaded" : true,"xtype":"nodelist"}, 
+          ]    
+        } ,
+        { "Name": "Links", "leaf": false, "loaded" : true,
+          "children": [
+             { "Name": "Link Search", "leaf": true, "loaded" : true,"xtype":"linksearch"}, 
+          ]    
+        } ,
+        { "Name": "Events", "leaf": false, "loaded" : true,
+          "children": [
+             { "Name": "Alarms", "leaf": true, "loaded" : true,"xtype":"alarms"},
+          ]    
+        } ,
+	{"Name":"System","leaf":false,"loaded":true,
+		"children":[
+			{"Name":"Services","leaf":true,"loaded":true,"xtype":"services"}
+		]
+	},
+	{"Name":"User","leaf":false,"loaded":true,
+		"children":[
+			{"Name":"Bookmarks","leaf":true,"loaded":true,"xtype":"bookmarks"},
+		]
+	}
+    ]
+}
