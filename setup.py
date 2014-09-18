@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
 	name="netman",
-	version=".01",
+	version=".0101",
 	description="network management framework",
 	author="Micah Schaefer",
 	author_email="micah@kulo.us",
@@ -22,6 +22,26 @@ setup(
 		'webpy',
 		'gping',
 		'ConfigParser'
+	],
+	package_data={
+		'netman': ['netman/files/'],
+	},
+	
+	data_files=[
+		('/etc/init.d/',[
+			'netman/files/init/netman-monitor',
+			'netman/files/init/netman-model',
+			]
+		),
+		('/var/www/netman/',[
+			'netman/files/www/*'
+			]
+		),
+		('/etc/',[
+			'netman/files/netman.conf'
+			]
+		),
+	
 	],
 )
 

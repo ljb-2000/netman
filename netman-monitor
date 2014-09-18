@@ -60,7 +60,7 @@ Config = config.Config(cfg=configfile)
 web.config._hasPooling = False
 web.config.debug = False
 logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
-errlogfile = "%s/%s-error.log" % (Config.logdir,SERVICE_NAME)
+errlogfile = "/dev/null/"
 db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
 if not os.geteuid()==0:
 	print "%s must be ran as root\n" % SERVICE_NAME

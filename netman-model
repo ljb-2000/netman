@@ -82,7 +82,7 @@ Config = config.Config(cfg=configfile)
 web.config._hasPooling = False
 web.config.debug = False
 logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
-errlogfile = "%s/%s-error.log" % (Config.logdir,SERVICE_NAME)
+errlogfile = "/dev/null"
 model.debuglevel = debuglevel
 
 def callitback(c):
@@ -134,6 +134,9 @@ def run():
 			except:
 				log("cant't connect to database",0)
 				time.sleep(2)
+		while not ping(Config.ipcheck):
+			log("Unable to reach ip check device at %s, waiting 5 seconds" % Config.ipcheck,0)
+			time.sleep(3)
 		total_nodes = []
 		def total_nodes(c):
 			'''do nothing for reals'''
@@ -153,9 +156,6 @@ def run():
 		if len(devices) > 1 and PROCESS_LIMIT > 1:
 			try:
 				for d in devices:
-					while not tools.ping(Config.ipcheck):
-						log("Unable to reach ip check device at %s, waiting 5 seconds" % Config.ipcheck,0)
-						time.sleep(3)
 					units.append(d.Address)
 				gevent.joinall([gevent.spawn(model.device, i) for i in units])
 			except KeyboardInterrupt:
