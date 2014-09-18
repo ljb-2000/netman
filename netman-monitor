@@ -60,7 +60,7 @@ Config = config.Config(cfg=configfile)
 web.config._hasPooling = False
 web.config.debug = False
 logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
-errlogfile = "/dev/null/"
+errlogfile = "/dev/null"
 db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
 if not os.geteuid()==0:
 	print "%s must be ran as root\n" % SERVICE_NAME
@@ -88,8 +88,9 @@ if not interactive:
 	pid = str(os.getpid())
 else:
 	log("running in interactive mode",0)
-se = file(errlogfile, 'a+')
-os.dup2(se.fileno(), sys.stderr.fileno())
+if int(debuglevel) < 2 and not interactive:
+	se = file(errlogfile, 'a+')
+	os.dup2(se.fileno(), sys.stderr.fileno())
 log("%s started" % SERVICE_NAME,0)
 log("debug level set to %s" % debuglevel,0)
 sys.stdout.flush()

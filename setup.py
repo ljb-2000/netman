@@ -27,22 +27,23 @@ setup(
 		'netman': ['netman/files/'],
 	},
 	
-	data_files=[
-		('/etc/init.d/',[
-			'netman/files/init/netman-monitor',
-			'netman/files/init/netman-model',
-			]
-		),
-		('/var/www/netman/',[
-			'netman/files/www/*'
-			]
-		),
-		('/etc/',[
-			'netman/files/netman.conf'
-			]
-		),
-	
-	],
+	# can't seem to get the data files into the distribution tar file yet
+	#data_files=[
+	#	('/etc/init.d/',[
+	#		'netman/files/init/netman-monitor',
+	#		'netman/files/init/netman-model',
+	#		]
+	#	),
+	#	('/var/www/netman/',[
+	#		'netman/files/www/*'
+	#		]
+	#	),
+	#	('/etc/',[
+	#		'netman/files/netman.conf'
+	#		]
+	#	),
+	#
+	#],
 )
 
 # files to be copied in

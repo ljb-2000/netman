@@ -15,7 +15,7 @@
 
 
 CONFDIR="/etc"
-BINDIR="/itc/html/netman-js/core"
+BINDIR="/usr/bin"
 PROG="netman-monitor"
 PROG_OPTS=""
 PID_FILE="/var/run/${PROG}.pid"
@@ -38,7 +38,7 @@ get() {
 }
 check_pid(){
 	PIDS=""
-	for pid in `pgrep -xf "python $BINDIR/$PROG start"`; do
+	for pid in `pgrep "$PROG"`; do
 		if [ $pid -ne $$ ] ; then # incase $PROG == $0
 			PIDS="$pid"
 		fi
@@ -118,7 +118,7 @@ stop() {
 }
 
 status() {
-	check_prog
+    check_prog
 	RET=$?
    case "$RET" in
 	"0") echo "${PROG} is running";;
@@ -133,7 +133,6 @@ status() {
 restart() {
 	echo "Restarting ${PROG}..."
 	stop
-	
 	start
 }
 
