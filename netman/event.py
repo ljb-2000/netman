@@ -4,6 +4,7 @@ from gevent import socket
 import struct
 import web
 import time, sys, os, re
+import config
 
 debuglevel = 0
 class Event:
@@ -14,7 +15,7 @@ class Event:
 		Other Keywords: Source,Ack,Level
 		ex. Event("This is the message",Source="SYSLOG",Address="1.1.1.1")
 				'''
-		self.config = Config()
+		self.config = config.Config()
 		self.Message = message
 		self.Subscribers = []
 		self.id = ''

@@ -124,8 +124,6 @@ def run():
 	sys.stdout.flush()
 	db = False
 
-
-
 	while(1):
 		# execute main code here
 		while not db:
@@ -137,12 +135,6 @@ def run():
 		while not ping(Config.ipcheck):
 			log("Unable to reach ip check device at %s, waiting 5 seconds" % Config.ipcheck,0)
 			time.sleep(3)
-		total_nodes = []
-		def total_nodes(c):
-			'''do nothing for reals'''
-			sys.exit()
-			# Multi processing mac polling
-			# netman.Event("message",Address=device.Address,Source="NETMAN-MODELLER",Tag="NETMAN-MODELLER",Severity="5")
 		d = "SELECT id,Name,State,INET_NTOA(Address) AS Address,Alive FROM Devices WHERE (State !='De-comissioned') AND (Address !='') AND Alive='1' "
 		if DEVICE != '':
 			d = d + " AND (Name = '%s' OR Address=INET_ATON('%s')) " % (DEVICE,DEVICE)
@@ -161,9 +153,8 @@ def run():
 			except KeyboardInterrupt:
 				print "Quitting by request"
 				sys.exit(0)
-			#except:
-			#	print "Uncaught exception"
-			#	sys.exit(0)
+			except:
+				log("Uncaught exception",0)
 		else:
 			for d in devices:
 				d = model.device(Device=d.Address)

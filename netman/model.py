@@ -579,10 +579,10 @@ class Device:
 		self.DnsName = self.nslookup(self.ipAddress(self.Address))
 		if self.SnmpName != '':
 			if self.SnmpName != self.DnsName or self.SnmpName != self.Name or self.Name != self.DnsName:
-				try:
-					event.Event("Name mismatch: Configured: %s,DNS: %s, SNMP: %s" % (self.Name,self.DnsName,self.SnmpName),Address=self.Address,Source="NETMAN-MODEL",Tag="NAME-MISMATCH",Severity=3)
-				except:
-					log("Could not create Event",1)
+				event.Event("Name mismatch: Configured: %s,DNS: %s, SNMP: %s" % (self.Name,self.DnsName,self.SnmpName),Address=self.Address,Source="NETMAN-MODEL",Tag="NAME-MISMATCH",Severity=3)
+				#try:
+				#except:
+				#	log("Could not create Event",1)
 		return True
 				
 	def ipAddress(self,Address):
