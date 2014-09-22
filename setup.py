@@ -1,14 +1,15 @@
 from distutils.core import setup
 
+__version__ = ".0102"
+
 setup(
 	name="netman",
-	version=".0101",
+	version=__version__,
 	description="network management framework",
 	author="Micah Schaefer",
 	author_email="micah@kulo.us",
 	url = "none",
 	packages=['netman'],
-	#package_data=[],
 	scripts=[
 		'netman-monitor',
 		'netman-model',
@@ -28,22 +29,22 @@ setup(
 	},
 	
 	# can't seem to get the data files into the distribution tar file yet
-	#data_files=[
-	#	('/etc/init.d/',[
-	#		'netman/files/init/netman-monitor',
-	#		'netman/files/init/netman-model',
-	#		]
-	#	),
-	#	('/var/www/netman/',[
-	#		'netman/files/www/*'
-	#		]
-	#	),
-	#	('/etc/',[
-	#		'netman/files/netman.conf'
-	#		]
-	#	),
-	#
-	#],
+	data_files=[
+		('/etc/init.d/netman/',[
+			'netman/files/init/netman-monitor',
+			'netman/files/init/netman-model',
+			]
+		),
+		('/var/www/',[
+			'netman/files/netman-www.tar'
+			]
+		),
+		('/etc/netman/',[
+			'netman/files/netman.conf'
+			]
+		),
+	
+	],
 )
 
 # files to be copied in

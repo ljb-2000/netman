@@ -8,3 +8,7 @@ netman/config.py
 netman/event.py
 netman/model.py
 netman/tools.py
+netman/files/netman-www.tar
+netman/files/netman.conf
+netman/files/init/netman-model
+netman/files/init/netman-monitor

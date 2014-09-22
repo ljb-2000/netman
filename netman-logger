@@ -1,19 +1,25 @@
 #!/usr/bin/env python
 # right now, this is a simple script that invokes that event class after parsing out standard input from rsyslog
+import sys
+if len(sys.argv) < 2 or "{{{" not in sys.argv[1]:
+	# expects stdin to be rsyslog format string
+	# see docs, line below should be template usd in rsyslog, or equivalent for other logging deaemons:
+	# $template netman,"\'{{{%timegenerated%{{{%syslogseverity%{{{%fromhost-ip%{{{%hostname%{{{%syslogtag%{{{%msg%{{{%syslogfacility%\'
+	sys.exit()
+
 from netman import event
-import sys,os
+import os
 import time
 # log handling; may be replaced with absolute file path for troubleshooting
-
-#STDOUT = ""
-#STDERR = ""
 
 STDOUT = "/dev/null"
 STDERR = "/dev/null"
 
 dropdebug = []
+##############################
+# don't edit below this line #
+##############################
 
-# don't edit below this line
 sys.stderr = open(STDERR,'a+')
 sys.stdout = open(STDOUT,'a+')
 i = ''
@@ -60,6 +66,10 @@ try:
 	else:
 		status = 0
 	Tag = Tag.upper()
+	
+	# this is the onnly message clearing capability right now. need to build this out formally
+
+
 	if "C6KPWR-SP-4-PSREDUNDANTBOTHSUPPLY" in Tag or "C6KPWR-SP-4-PSOK" in Tag:
 		TagClear = "C6KPWR"
 	if "C6KENV-SP-4-PSFANOK" in Tag:
@@ -73,6 +83,7 @@ try:
 	if "Type: NTP Synchronization, State: Green" in Message:
 		MessageClear = "Type: NTP Synchronization, State: Red"
 
+	# invoke the event now
 	event.Event(Message,Address=Address,Facility=Facility,Severity=Severity,Source="SYSLOG",Tag=Tag,Status=status,Reported=TimeStamp,MessageClear=MessageClear,TagClear=TagClear)
 except:
 	# for help with errors, uncomment line below
