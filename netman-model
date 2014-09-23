@@ -79,8 +79,6 @@ if interactive and debuglevel < 1:
 	debuglevel = 1
 	log("Setting debug level to 1 for interactive",1)
 Config = config.Config(cfg=configfile)
-web.config._hasPooling = False
-web.config.debug = False
 logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
 errlogfile = "/dev/null"
 model.debuglevel = debuglevel
@@ -116,7 +114,7 @@ def run():
 		pid = str(os.getpid())
 	else:
 		log("running in interactive mode",0)
-	if int(debuglevel) < 2 and not interactive:
+	if not interactive:
 		se = file(errlogfile, 'a+')
 		os.dup2(se.fileno(), sys.stderr.fileno())
 	log("%s started" % SERVICE_NAME,0)
