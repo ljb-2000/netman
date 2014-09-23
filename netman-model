@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import web
+from netman.config import web
 import time
 import sys,os,time,atexit,getopt
 from netman.tools import ping

@@ -1,9 +1,13 @@
 from distutils.core import setup
-import os
+import sys
+
+__version__ = ".0103"
+
+
 defaults = {
 	'config_dir' : '/etc/',
-	'www_dir' : '/var/www/netman',
-	'init_dir':'/etc/init.d',
+	'www_dir' : '/var/www/netman/',
+	'init_dir':'/etc/init.d/',
 }
 
 def accept(text):
@@ -19,28 +23,34 @@ def get(text):
 		return text
 
 def netset():
-	# before setup run these checks
-	
-	# check for previous config
-	try:
-		os.path.isfile(defaults['config_dir'] + "netman.conf")
-		if accept("do you want to preserve your previous configuration[y/n]?"):
-			print "OK"
-			configsave = True
-			# copy old configuration 
-		else:
-			print "fine then"
-	except:
-		pass
-	
 	# check for defaults
 	for name,default in defaults.iteritems():
 		defaults[name] = get(name + "[" + default + "]?")
 
 
+	from os import path
+	import shutil
+	# check for previous config
+	try:
+		path.isfile(defaults['config_dir'] + "netman.conf")
+		if accept("do you want to preserve your previous configuration[y/n]?"):
+			dest = "/tmp"
+			dest = get("backup to: [%s]?" % dest)
+			try:
+				shutil.copy(defaults['config_dir'] + "netman.conf",dest)
+			except:
+				print "Unable to copy file, please manually backup and try again."
+				sys.exit()
+	except:
+		pass
+	
+
+if "install" in sys.argv:
+	netset()
+
+
 # ask to back up previous version if exists
 
-__version__ = ".0102"
 
 setup(
 	name="netman",
@@ -64,10 +74,6 @@ setup(
 		'gping',
 		'ConfigParser'
 	],
-	package_data={
-		'netman': ['netman/files/'],
-	},
-	
 	# can't seem to get the data files into the distribution tar file yet
 	data_files=[
 		(defaults['init_dir'],[
@@ -79,7 +85,7 @@ setup(
 			'netman/files/netman-www.zip'
 			]
 		),
-		(defaults['config_dir'],'/etc/netman/',[
+		(defaults['config_dir'],[
 			'netman/files/netman.conf'
 			]
 		),

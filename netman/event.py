@@ -2,7 +2,7 @@ import smtplib
 from email.mime.text import MIMEText as text
 from gevent import socket
 import struct
-import web
+from config import web
 import time, sys, os, re
 import config
 

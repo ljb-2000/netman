@@ -16,6 +16,7 @@
 
 CONFDIR="/etc"
 BINDIR="/itc/html/netman-js/core"
+BINDIR="/usr/bin"
 PROG="netman-model"
 PROG_OPTS=""
 PID_FILE="/var/run/${PROG}.pid"
@@ -27,8 +28,7 @@ PIDS=""
 # redhat sysconfig options
 [ -e /etc/sysconfig/$PROG ] && . /etc/sysconfig/$PROG
 
-# export option1
-# export option2
+export $ARGS
 
 get() {
     key=$1
@@ -38,7 +38,7 @@ get() {
 }
 check_pid(){
 	PIDS=""
-	for pid in `pgrep -xf "python $BINDIR/$PROG start"`; do
+	for pid in `pgrep "$PROG"`; do
 		if [ $pid -ne $$ ] ; then # incase $PROG == $0
 			PIDS="$pid"
 		fi
@@ -89,7 +89,7 @@ start() {
     fi
 
 
-    ${BINDIR}/${PROG} ${PROG_OPTS} start
+    ${BINDIR}/${PROG} ${PROG_OPTS} $ARGS
     if [ $? -ne 0 ] ; then
         echo "Error starting ${PROG}."
 	exit 1

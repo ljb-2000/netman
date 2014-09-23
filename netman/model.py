@@ -3,7 +3,6 @@ from gevent import socket
 import struct
 import config
 import event
-import web
 import time, sys, os, re
 from pysnmp.entity.rfc3413.oneliner import cmdgen
 from pysnmp.proto import rfc1902
@@ -39,7 +38,7 @@ debuglevel = 0
 
 
 Config = config.Config()
-db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
+db = config.web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
 def log(msg,level):
 	'''logs messages'''
 	if int(level) <= int(debuglevel):

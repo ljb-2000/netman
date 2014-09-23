@@ -1,5 +1,11 @@
 import ConfigParser
 import time, sys, os, re
+import web
+
+web.config._hasPooling = False
+web.config.debug = False
+web.db.printing = False
+
 
 class Config:
 	'''Handles configuration reading and writing'''

@@ -27,8 +27,7 @@ PIDS=""
 # redhat sysconfig options
 [ -e /etc/sysconfig/$PROG ] && . /etc/sysconfig/$PROG
 
-# export option1
-# export option2
+export $ARGS
 
 get() {
     key=$1
@@ -89,7 +88,7 @@ start() {
     fi
 
 
-    ${BINDIR}/${PROG} ${PROG_OPTS} start
+    ${BINDIR}/${PROG} ${PROG_OPTS} $ARGS
     if [ $? -ne 0 ] ; then
         echo "Error starting ${PROG}."
 	exit 1
