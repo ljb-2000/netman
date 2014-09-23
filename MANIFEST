@@ -12,3 +12,5 @@ netman/files/netman-www.zip
 netman/files/netman.conf
 netman/files/init/netman-model
 netman/files/init/netman-monitor
+netman/files/sysconfig/netman-model
+netman/files/sysconfig/netman-monitor

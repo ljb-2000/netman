@@ -2,3 +2,5 @@ include netman/files/netman.conf
 include netman/files/init/netman-monitor
 include netman/files/init/netman-model
 include netman/files/netman-www.zip
+include netman/files/sysconfig/netman-monitor
+include netman/files/sysconfig/netman-model

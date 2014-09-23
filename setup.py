@@ -1,13 +1,14 @@
 from distutils.core import setup
 import sys
 
-__version__ = ".0103"
+__version__ = ".0104"
 
 
 defaults = {
 	'config_dir' : '/etc/',
 	'www_dir' : '/var/www/netman/',
-	'init_dir':'/etc/init.d/',
+	'init_dir' : '/etc/init.d/',
+	'sysconfig_dir' : '/etc/sysconfig/',
 }
 
 def accept(text):
@@ -87,6 +88,11 @@ setup(
 		),
 		(defaults['config_dir'],[
 			'netman/files/netman.conf'
+			]
+		),
+		(defaults['sysconfig_dir'],[
+			'netman/files/sysconfig/netman-model',
+			'netman/files/sysconfig/netman-monitor',
 			]
 		),
 	
