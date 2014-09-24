@@ -1,7 +1,7 @@
 from distutils.core import setup
 import sys
 
-__version__ = ".0104"
+__version__ = ".0105"
 
 
 defaults = {
@@ -24,6 +24,11 @@ def get(text):
 		return text
 
 def netset():
+	print '''Preparing to install...
+
+Verify configuration options:
+'''
+
 	# check for defaults
 	for name,default in defaults.iteritems():
 		defaults[name] = get(name + "[" + default + "]?")

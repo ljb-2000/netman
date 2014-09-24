@@ -186,6 +186,7 @@ class Device:
 			self.closedb()
 			#return 0
 	def closedb(self):
+		return True
 		try:
 			db.ctx.db.close()
 		except:

@@ -80,7 +80,7 @@ if interactive and debuglevel < 1:
 	log("Setting debug level to 1 for interactive",1)
 Config = config.Config(cfg=configfile)
 logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
-errlogfile = "/dev/null"
+errlogfile = "%s/%s.errorlog" % (Config.logdir,SERVICE_NAME)
 model.debuglevel = debuglevel
 
 def callitback(c):
@@ -115,6 +115,8 @@ def run():
 	else:
 		log("running in interactive mode",0)
 	if not interactive:
+		if debuglevel < 2:
+			errlogfile = "/dev/null"
 		se = file(errlogfile, 'a+')
 		os.dup2(se.fileno(), sys.stderr.fileno())
 	log("%s started" % SERVICE_NAME,0)
