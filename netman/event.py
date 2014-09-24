@@ -72,8 +72,6 @@ class Event:
 			self.log("No device specified",0)
 			sys.exit(0)
 			
-		web.config.debug=self.config.debug
-		web.config._hasPooling = self.config.debug
 		try:
 			
 			self.db = web.database(dbn=self.config.dbn,host=self.config.dbhost,user=self.config.dbuser,pw=self.config.dbpasswd,db=self.config.database)
