@@ -182,8 +182,5 @@ def run():
 				sys.exit()
 		except KeyboardInterrupt:
 			sys.exit()
-		except:
-			sys.exit()
-			log("general error",0)
 if 'main' in __name__:
 	run()
