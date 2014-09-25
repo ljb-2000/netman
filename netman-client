@@ -1,0 +1,197 @@
+#!/usr/bin/env python
+from netman.config import web
+import time
+import sys,os,time,atexit,getopt
+from netman import config
+from getpass import getpass
+import hashlib
+import tty,termios
+class _Getch:
+    def __call__(self):
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            try:
+                tty.setraw(sys.stdin.fileno())
+                ch = sys.stdin.read(3)
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            return ch
+
+
+SERVICE_NAME = "netman-client"
+
+			
+# GLOBAL variables 
+DOWNED = []
+KNOWN_DOWN = []
+ALLQ = []
+
+def usage():
+	print "%sr help menu" % sys.argv[0]
+	print "-c(--config=) config_file		set config file location"
+	print "-d(--debug=) debug_level			set debug level, int=0 - 3, default is 0 (off)"
+	print "-h(--help)				print this help menu then exit"
+	sys.exit()
+args = 'c:d:h'
+opts = ['config=','debug=','help']
+
+try:
+	opts, args = getopt.getopt(sys.argv[1:], args, opts)
+except:
+	usage()
+# default setup
+configfile = '/etc/netman.conf'
+debuglevel = 0
+interactive = False
+
+
+for o, a in opts:
+	if o in ("-c","--config"):
+		configfile = a
+	elif o in ("-d","--debug"):
+		debug = a
+		try:
+			int(a)
+			debuglevel = a
+		except:
+			print "debug level must be between 0 and 3"
+			usage()
+	elif o in ("-h","--help"):
+		usage()
+# i don't think I'll need to create icmp sockets
+
+#if not os.geteuid()==0:
+#	print "%s must be ran as root\n" % SERVICE_NAME
+#	sys.exit(0)
+
+PROMPT = "netman>"
+class CLI:
+	def __init__(self):
+		self.__Config = config.Config(cfg=configfile)
+		self.__db = web.database(
+			dbn=self.__Config.dbn,
+			host=self.__Config.dbhost,
+			user=self.__Config.dbuser,
+			pw=self.__Config.dbpasswd,
+			db=self.__Config.database,
+		)
+		self.__AUTH = False
+		self.__BANNER = '''
+*****************************************************
+
+Authorized use only!
+*****************************************************'''
+		self.__LOADED = False
+		self.__PROMPT = PROMPT
+		self.__HISTORY = []
+		self.__INPUT = ""
+		#print self.__BANNER
+		#self.__login()
+		while True:	
+			self.__get()
+			self.__eval()
+	def __get(self):
+		self.__INPUT = ""
+		print self.__PROMPT,
+		while " " and "\n" not in self.__INPUT or self.__INPUT == "":
+			try:
+				self.__INPUT  = self.__INPUT + sys.stdin.read(1)
+			except KeyboardInterrupt:
+				print " "
+				print self.__PROMPT,
+	def __login(self):
+		'''login'''
+		attempts = 0
+		while not self.__AUTH and attempts < 3:
+			user = raw_input("login:")
+			passwd = getpass("password:")
+			if attempts != "" and passwd != "":
+				m = hashlib.md5()
+				m.update(self.__Config.secret)
+				m.update(passwd)
+				password = m.hexdigest()
+				sql = "SELECT * FROM Users WHERE Name='{User}' AND Password='{Pass}'".format(User=user,Pass=password)
+				d = self.__db.query(sql)
+				if len(d) == 1:
+					for i in d:
+						print "Welcome %s" % i.FirstName
+						self.__AUTH = True
+			attempts = attempts + 1
+		if not self.__AUTH:
+			print "Too many failed attempts"
+			sys.exit()
+		
+	def __eval(self):
+		l = self.__INPUT.split()
+		if len(l) > 0:
+			self.__HISTORY.append(self.__INPUT)
+			if "exit" in l:
+				self.exit()
+			elif "help" in l:
+				self.help()
+			else:
+				isit = getattr(self,l[0],None)
+				if callable(isit):
+					getattr(self,l[0],None)()
+				else:
+					print "unknown command"
+					self.help()
+	def exit(self):
+		'''leave this cli'''
+		print "bye!"
+		sys.exit()
+	def help(self):
+		'''this help menu'''
+		print "Available commands:"
+		d = dir(self)
+		for i in d:
+			if "__" not in i:
+				print "%s	%s" % (i,getattr(self,i,None).__doc__)
+		print "help	this help menu"
+	def history(self):
+		'''prints recent command history or executed item in history by reference number'''
+		l = self.__INPUT.split()
+		if len(l) > 1:
+			print "executing %s" % self.__HISTORY[int(l[1]) -1]
+			self.__INPUT = self.__HISTORY[int(l[1]) -1]
+			self.__eval()
+		else:
+			c = 1
+			for i in self.__HISTORY:
+				print "%s %s" % (c,i.strip())
+				c = c + 1
+	def show(self):
+		'''description for show'''
+		if self.__LOADED:
+			l = self.__INPUT.split()
+			if len(l) > 1:
+				try:
+					print getattr(self.__Device,l[1])
+				except:
+					pass
+	def load(self):
+		'''load a device from database into cache to manipulate'''
+		l = self.__INPUT.split()
+		if len(l) == 2:
+			t = l[1]
+			sql = "SELECT * FROM Devices WHERE Name='{Device}' OR Address=INET_ATON('{Device}')".format(Device=t)
+			d = self.__db.query(sql)
+			for device in d:
+				print "%s loaded" % device.Name
+				self.__PROMPT = "%s %s>" % (PROMPT,device.Name )
+				self.__LOADED = True
+				self.__Device = device
+		else:
+			print "usage: load device (device name or address)"
+	def unload(self):
+		'''unload a device from cache'''
+		print "unloading cached device"
+		self.__PROMPT = PROMPT
+		self.__LOADED = False
+		self.__Device = ""
+	def add(self):
+		'''add a device to the database'''
+	def remove(self):
+		'''remove a device from the database'''
+
+CLI = CLI()
