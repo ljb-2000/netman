@@ -251,8 +251,11 @@ class Device:
 				return False
 			if prompt == 5:
 				log('SSH Key Change, deleting key file',0)
-				tor = "~/.ssh/known_hosts"
-				raise
+				try:
+					tor = os.path.expanduser("~") + "/.ssh/known_hosts"
+					os.remove(tor)
+				except:
+					pass
 				return False
 	def sshTest(self):
 		try:
