@@ -17,11 +17,15 @@ def accept(text):
 		return True
 	return False
 def get(text):
-	answer = raw_input(text)
+	answer = raw_input("[%s]? " % text)
 	if answer != "":
 		return answer
 	else:
 		return text
+def print_settings():
+	'''prints settings'''
+	for name,default in defaults.iteritems():
+		print "%s=%s" % (name,default)
 
 def netset():
 	print '''Preparing to install...
@@ -31,29 +35,29 @@ Verify configuration options:
 
 	# check for defaults
 	for name,default in defaults.iteritems():
-		defaults[name] = get(name + "[" + default + "]?")
-
+		print name,
+		defaults[name] = get(default)
 
 	from os import path
 	import shutil
 	# check for previous config
 	try:
-		path.isfile(defaults['config_dir'] + "netman.conf")
-		if accept("do you want to preserve your previous configuration[y/n]?"):
-			dest = "/tmp"
-			dest = get("backup to: [%s]?" % dest)
-			try:
-				shutil.copy(defaults['config_dir'] + "netman.conf",dest)
-			except:
-				print "Unable to copy file, please manually backup and try again."
-				sys.exit()
+		print defaults['config_dir']
+		if path.isfile(defaults['config_dir'] + "netman.conf"):
+			if accept("do you want to preserve your previous configuration[y/n]?"):
+				dest = "/tmp"
+				dest = get("backup to: [%s]?" % dest)
+				try:
+					shutil.copy(defaults['config_dir'] + "netman.conf",dest)
+				except:
+					print "Unable to copy file, please manually backup and try again."
+					sys.exit()
 	except:
 		pass
 	
 
 if "install" in sys.argv:
 	netset()
-
 
 # ask to back up previous version if exists
 
