@@ -38,7 +38,10 @@ class Config:
 	def loadconfig(self):
 		'''checks for option in config file'''
 		for i in self.defaults:
-			setattr(self,i,self.config.get('global',i))
+			try:
+				setattr(self,i,self.config.get('global',i))
+			except:
+				pass
 
 	def loaddefaults(self):
 		'''checks for option in default list'''
