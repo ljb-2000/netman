@@ -250,7 +250,8 @@ class Device:
 			if prompt == 4:
 				return False
 			if prompt == 5:
-				log('SSH Key Change!!!',0)
+				log('SSH Key Change, deleting key file',0)
+				tor = "~/.ssh/known_hosts"
 				raise
 				return False
 	def sshTest(self):
@@ -424,8 +425,6 @@ class Device:
 		
 		
 
-	def ping(self):
-		'''performs network connectivity assessment'''
 	def snmpget(self,varName):
 		'''performs snmpget'''
 		try:

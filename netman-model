@@ -2,7 +2,6 @@
 from netman.config import web
 import time
 import sys,os,time,atexit,getopt
-from netman.tools import ping
 from netman import model
 from netman import config
 import gevent
@@ -88,9 +87,9 @@ def callitback(c):
 
 def run():
 	'''main worker'''
-	if not os.geteuid()==0:
-		print "%s must be ran as root\n" % SERVICE_NAME
-		sys.exit(0)
+	#if not os.geteuid()==0:
+	#	print "%s must be ran as root\n" % SERVICE_NAME
+	#	sys.exit(0)
 
 	if not interactive:
 		pid = os.fork()
@@ -132,9 +131,6 @@ def run():
 			except:
 				log("cant't connect to database",0)
 				time.sleep(2)
-		while not ping(Config.ipcheck):
-			log("Unable to reach ip check device at %s, waiting 5 seconds" % Config.ipcheck,0)
-			time.sleep(3)
 		d = "SELECT id,Name,State,INET_NTOA(Address) AS Address,Alive FROM Devices WHERE (State !='De-comissioned') AND (Address !='') AND Alive='1' "
 		if DEVICE != '':
 			d = d + " AND (Name = '%s' OR Address=INET_ATON('%s')) " % (DEVICE,DEVICE)
