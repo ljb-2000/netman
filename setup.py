@@ -1,7 +1,7 @@
 from distutils.core import setup
 import sys
 
-__version__ = ".0107"
+__version__ = ".0108"
 
 
 defaults = {

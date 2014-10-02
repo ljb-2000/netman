@@ -139,6 +139,15 @@ def run():
 			for device in devices:
 				if device.Alive == 0:
 					KNOWN_DOWN.append(device.Address)
+				elif device.Alive == 2:
+					# recently added device
+					if ping(device.Address):
+						nup = "UPDATE Devices SET Alive='1', LastSeen='%s' WHERE id='%s'" % (int(time.time()),device.id)
+					else:
+						nup = "UPDATE Devices SET Alive='0', LastDown='%s' WHERE id='%s'" % (int(time.time()),device.id)
+					if not interactive:
+						log(nup,3)
+						db.query(nup)
 				elif device.Alive == 3:
 					# if marked by web for deletion, do it here. 
 					log("Deleting device %s as marked by web." % device.Name,0)
