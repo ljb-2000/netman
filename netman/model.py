@@ -148,26 +148,28 @@ class Device:
 						lm = int(mtime)
 					except:
 						m = 0
-					if time.time() - lm > 60*60*12:
-						log("Backup failed, file time is %s" % time.ctime(int(lm)),0)
-					else:
-						YEAR=time.strftime('%Y')
-						MONTH=time.strftime('%B')
-						DAY=time.strftime('%d')
-						DAY_DIR=Config.tftproot + "/" + YEAR + '/' + MONTH + '/' + DAY
-						newfile = Config.tftproot + "/" + YEAR + '/' + MONTH + '/' + DAY + "/" + self.configfilename
+					log("File time is %s" % time.ctime(int(lm)),0)
+					YEAR=time.strftime('%Y')
+					MONTH=time.strftime('%B')
+					DAY=time.strftime('%d')
+					DAY_DIR=Config.tftproot + "/" + YEAR + '/' + MONTH + '/' + DAY
+					newfile = Config.tftproot + "/" + YEAR + '/' + MONTH + '/' + DAY + "/" + self.configfilename
+					# check for directory
+					if not os.path.exists(DAY_DIR):
+       						log("creating directory %s" % DAY_DIR,1)
+       						os.makedirs(DAY_DIR,0777)
+						os.chown(DAY_DIR,pwd.getpwnam("nobody").pw_uid,grp.getgrnam("nobody").gr_gid)
 
-						if not os.path.exists(DAY_DIR):
-        						log("creating directory %s" % DAY_DIR,1)
-        						os.makedirs(DAY_DIR,0777)
-							os.chown(DAY_DIR,pwd.getpwnam("nobody").pw_uid,grp.getgrnam("nobody").gr_gid)
+					log("Copying %s to %s" % (self.tftpfile,newfile),1)
 
-						log("Copying %s to %s" % (self.tftpfile,newfile),1)
-						if os.path.isfile(self.tftpfile):
+					if os.path.isfile(self.tftpfile):
+						try:
 							shutil.copy(self.tftpfile,newfile)
 							os.chown(newfile,pwd.getpwnam("nobody").pw_uid,grp.getgrnam("nobody").gr_gid)
-						else:
-							log("File does not exist, not copying",1)
+						except:
+							log("could not copy file",1)
+					else:
+						log("File does not exist, not copying",1)
 				
 			if self.SNMP_ENABLED:
 				if self.snmpinfo():
