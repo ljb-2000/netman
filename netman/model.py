@@ -148,7 +148,7 @@ class Device:
 						lm = int(mtime)
 					except:
 						m = 0
-					log("File time is %s" % time.ctime(int(lm)),0)
+					log("File time is %s" % time.ctime(int(lm)),3)
 					YEAR=time.strftime('%Y')
 					MONTH=time.strftime('%B')
 					DAY=time.strftime('%d')
@@ -233,10 +233,10 @@ class Device:
 		while True:
 			prompt = self.shell.expect(['(yes/no)','assword:','[>]','[#]','[$]','@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @'])
 			if prompt == 0:
-				log('accepting rsa keys',2)
+				log('accepting rsa keys',3)
 				self.shell.sendline('yes')
 			if prompt == 1:
-				log('sending ssh password',2)
+				log('sending ssh password',3)
 				self.shell.sendline(self.SSH_PASSWD)
 			if prompt == 2:
 				try:
@@ -278,7 +278,7 @@ class Device:
 			self.SSH_ALIVE = 1
 			return True
 		except:
-			log('Errors while logging in with SSH as %s:%s' % (self.SSH_USER,self.SSH_PASSWD),1)
+			log('Errors while logging in with SSH as %s' % (self.SSH_USER),1)
 			if debuglevel > 2:
 				self.ssh_login()
 			self.SSH_ALIVE = 0
@@ -304,7 +304,7 @@ class Device:
 			for property in self.pattr:
 				if device[property] != "":
 					setattr(self,property,self.VarRep(device[property]))
-		if debuglevel > 1:
+		if debuglevel > 2:
 			log("Configuration:",0)
 			self.printproperties()
 	def stripDomain(self,string):
@@ -316,10 +316,10 @@ class Device:
 	def findparentclass(self,child):
 		'''Identifies parent class'''
 		aas = []
-		log("Looking up parent class of %s " % child,2)
+		# log("Looking up parent class of %s " % child,2)
 		c = db.select("Classes",where="id='%s'" % child)
 		for i in c:
-			log("Name: %s id: %s Parent: %s" % (i['Name'],i['id'],i['Parent']),2)
+			# log("Name: %s id: %s Parent: %s" % (i['Name'],i['id'],i['Parent']),2)
 			
 			for p in self.pattr:
 				aas.append({p:i[p]})
