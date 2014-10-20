@@ -74,13 +74,20 @@ for o, a in opts:
 			print "Invalid query_limnit parameter"
 			usage()
 #load configuration
-if interactive and debuglevel < 1:
-	debuglevel = 1
-	log("Setting debug level to 1 for interactive",1)
 Config = config.Config(cfg=configfile)
 logfile = "%s/%s.log" % (Config.logdir,SERVICE_NAME)
 errlogfile = "%s/%s.errorlog" % (Config.logdir,SERVICE_NAME)
+
+# push debuglevel to modeler
 model.debuglevel = debuglevel
+
+if not interactive:
+	if debuglevel < 2:
+		errlogfile = "/dev/null"
+	se = file(errlogfile, 'a+')
+	os.dup2(se.fileno(), sys.stderr.fileno())
+log("%s started" % SERVICE_NAME,0)
+log("debug level set to %s" % debuglevel,0)
 
 def callitback(c):
 	log(c,0)

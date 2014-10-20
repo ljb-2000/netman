@@ -165,9 +165,12 @@ class Device:
 					if os.path.isfile(self.tftpfile):
 						try:
 							shutil.copy(self.tftpfile,newfile)
+						except:
+							log("could not copy %s -> %s" % (self.tftpfile,newfile),1)
+						try:
 							os.chown(newfile,pwd.getpwnam("nobody").pw_uid,grp.getgrnam("nobody").gr_gid)
 						except:
-							log("could not copy file",1)
+							log("could not set file permissions on file %s" % newfile,1)
 					else:
 						log("File does not exist, not copying",1)
 				
