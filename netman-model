@@ -81,6 +81,36 @@ errlogfile = "%s/%s.errorlog" % (Config.logdir,SERVICE_NAME)
 # push debuglevel to modeler
 model.debuglevel = debuglevel
 
+def callitback(c):
+	log(c,0)
+
+# need root to set file permissions
+if not os.geteuid()==0:
+	print "%s must be ran as root\n" % SERVICE_NAME
+	sys.exit(0)
+
+if not interactive:
+	pid = os.fork()
+	if pid > 0:
+		# exit first parent
+		sys.exit(0)
+	os.chdir("/")
+	os.setsid()
+	os.umask(0)
+	pid = os.fork()
+	if pid > 0:
+		# exit second parent
+		sys.exit(0)
+	sys.stdout.flush()
+	sys.stderr.flush()
+	si = file('/dev/null', 'r')
+	so = file(logfile, 'a+')
+	os.dup2(si.fileno(), sys.stdin.fileno())
+	os.dup2(so.fileno(), sys.stdout.fileno())
+	# atexit.register(self.delpid)
+	pid = str(os.getpid())
+else:
+	log("running in interactive mode",0)
 if not interactive:
 	if debuglevel < 2:
 		errlogfile = "/dev/null"
@@ -88,48 +118,11 @@ if not interactive:
 	os.dup2(se.fileno(), sys.stderr.fileno())
 log("%s started" % SERVICE_NAME,0)
 log("debug level set to %s" % debuglevel,0)
-
-def callitback(c):
-	log(c,0)
+sys.stdout.flush()
 
 def run():
 	'''main worker'''
-	#if not os.geteuid()==0:
-	#	print "%s must be ran as root\n" % SERVICE_NAME
-	#	sys.exit(0)
-
-	if not interactive:
-		pid = os.fork()
-		if pid > 0:
-			# exit first parent
-			sys.exit(0)
-		os.chdir("/")
-		os.setsid()
-		os.umask(0)
-		pid = os.fork()
-		if pid > 0:
-			# exit second parent
-			sys.exit(0)
-		sys.stdout.flush()
-		sys.stderr.flush()
-		si = file('/dev/null', 'r')
-		so = file(logfile, 'a+')
-		os.dup2(si.fileno(), sys.stdin.fileno())
-		os.dup2(so.fileno(), sys.stdout.fileno())
-		# atexit.register(self.delpid)
-		pid = str(os.getpid())
-	else:
-		log("running in interactive mode",0)
-	if not interactive:
-		if debuglevel < 2:
-			errlogfile = "/dev/null"
-		se = file(errlogfile, 'a+')
-		os.dup2(se.fileno(), sys.stderr.fileno())
-	log("%s started" % SERVICE_NAME,0)
-	log("debug level set to %s" % debuglevel,0)
-	sys.stdout.flush()
-	db = False
-
+	db = web.database(dbn=Config.dbn,host=Config.dbhost,user=Config.dbuser,pw=Config.dbpasswd,db=Config.database)
 	while(1):
 		# execute main code here
 		while not db:
