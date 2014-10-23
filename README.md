@@ -12,12 +12,12 @@ Required Python Packages
 [webpy]
 https://github.com/webpy/webpy/archive/master.zip
 
-[pycrypto-2.6.1]
-
-
 [pysnmp 4.2.5]
 https://pypi.python.org/packages/source/p/pysnmp/
 
 
 [python-ping-0.2]
 https://bitbucket.org/delroth/python-ping/downloads/python-ping-0.2.tar.gz
+
+[gping]
+
